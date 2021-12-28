@@ -30,15 +30,16 @@ func TestWriteHistory(t *testing.T) {
 
 	var wait sync.WaitGroup
 	wait.Add(1)
-	s := NewLiner()
+	h := &sliceHistory{}
+	s := NewLiner(h)
 	go func() {
-		s.AppendHistory("foo")
-		s.AppendHistory("bar")
+		h.AppendHistory("foo")
+		h.AppendHistory("bar")
 		s.Prompt("")
 		wait.Done()
 	}()
 
-	s.WriteHistory(ioutil.Discard)
+	h.WriteHistory(ioutil.Discard)
 
 	newinw.Close()
 	wait.Wait()

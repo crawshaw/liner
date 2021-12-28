@@ -9,11 +9,13 @@ import (
 
 func TestAppend(t *testing.T) {
 	var s State
-	s.AppendHistory("foo")
-	s.AppendHistory("bar")
+	h := &sliceHistory{}
+	s.history = h
+	s.history.AppendHistory("foo")
+	s.history.AppendHistory("bar")
 
 	var out bytes.Buffer
-	num, err := s.WriteHistory(&out)
+	num, err := h.WriteHistory(&out)
 	if err != nil {
 		t.Fatal("Unexpected error writing history", err)
 	}
@@ -21,8 +23,8 @@ func TestAppend(t *testing.T) {
 		t.Fatalf("Expected 2 history entries, got %d", num)
 	}
 
-	s.AppendHistory("baz")
-	num, err = s.WriteHistory(&out)
+	s.history.AppendHistory("baz")
+	num, err = h.WriteHistory(&out)
 	if err != nil {
 		t.Fatal("Unexpected error writing history", err)
 	}
@@ -30,8 +32,8 @@ func TestAppend(t *testing.T) {
 		t.Fatalf("Expected 3 history entries, got %d", num)
 	}
 
-	s.AppendHistory("baz")
-	num, err = s.WriteHistory(&out)
+	s.history.AppendHistory("baz")
+	num, err = h.WriteHistory(&out)
 	if err != nil {
 		t.Fatal("Unexpected error writing history", err)
 	}
@@ -39,8 +41,7 @@ func TestAppend(t *testing.T) {
 		t.Fatalf("Expected 3 history entries after duplicate append, got %d", num)
 	}
 
-	s.AppendHistory("baz")
-
+	s.history.AppendHistory("baz")
 }
 
 func TestHistory(t *testing.T) {
@@ -51,7 +52,9 @@ quux
 dingle`
 
 	var s State
-	num, err := s.ReadHistory(strings.NewReader(input))
+	h := &sliceHistory{}
+	s.history = h
+	num, err := h.ReadHistory(strings.NewReader(input))
 	if err != nil {
 		t.Fatal("Unexpected error reading history", err)
 	}
@@ -60,7 +63,7 @@ dingle`
 	}
 
 	var out bytes.Buffer
-	num, err = s.WriteHistory(&out)
+	num, err = h.WriteHistory(&out)
 	if err != nil {
 		t.Fatal("Unexpected error writing history", err)
 	}
@@ -72,8 +75,8 @@ dingle`
 	}
 
 	// clear the history and re-write
-	s.ClearHistory()
-	num, err = s.WriteHistory(&out)
+	h.ClearHistory()
+	num, err = h.WriteHistory(&out)
 	if err != nil {
 		t.Fatal("Unexpected error writing history", err)
 	}
@@ -82,7 +85,9 @@ dingle`
 	}
 	// Test reading with a trailing newline present
 	var s2 State
-	num, err = s2.ReadHistory(&out)
+	h2 := &sliceHistory{}
+	s2.history = h2
+	num, err = h2.ReadHistory(&out)
 	if err != nil {
 		t.Fatal("Unexpected error reading history the 2nd time", err)
 	}
@@ -90,7 +95,7 @@ dingle`
 		t.Fatal("Wrong number of history entries read the 2nd time")
 	}
 
-	num, err = s.ReadHistory(strings.NewReader(input + "\n\xff"))
+	num, err = h2.ReadHistory(strings.NewReader(input + "\n\xff"))
 	if err == nil {
 		t.Fatal("Unexpected success reading corrupted history", err)
 	}
@@ -129,11 +134,13 @@ func TestColumns(t *testing.T) {
 // history buffer without using a file.
 func ExampleState_WriteHistory() {
 	var s State
-	s.AppendHistory("foo")
-	s.AppendHistory("bar")
+	h := &sliceHistory{}
+	s.history = h
+	s.history.AppendHistory("foo")
+	s.history.AppendHistory("bar")
 
 	buf := new(bytes.Buffer)
-	_, err := s.WriteHistory(buf)
+	_, err := h.WriteHistory(buf)
 	if err == nil {
 		history := strings.Split(strings.TrimSpace(buf.String()), "\n")
 		for i, line := range history {

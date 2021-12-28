@@ -619,9 +619,6 @@ func (s *State) PromptWithSuggestion(prompt string, text string, pos int) (strin
 		return "", ErrNotTerminalOutput
 	}
 
-	s.historyMutex.RLock()
-	defer s.historyMutex.RUnlock()
-
 	fmt.Print(prompt)
 	var line = []rune(text)
 	historyEnd := ""
